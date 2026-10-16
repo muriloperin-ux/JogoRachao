@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JogoRachão - Sorteio de Times</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #111827;
+    color: white;
+    text-align: center;
+}
+
+header {
+    padding: 24px 12px;
+    background: #030712;
+    border-bottom: 2px solid #374151;
+}
+
+h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+header p {
+    color: #9ca3af;
+}
+
+.container {
+    width: 95%;
+    max-width: 900px;
+    margin: 25px auto;
+}
+
+.controles {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+select, button {
+    padding: 13px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+select {
+    background: white;
+    color: #111827;
+}
+
+button {
+    font-weight: bold;
+}
+
+#sortear {
+    background: #facc15;
+    color: #111827;
+}
+
+#sortear:hover {
+    background: #eab308;
+}
+
+#reiniciar {
+    background: #374151;
+    color: white;
+}
+
+.painel {
+    background: #1f2937;
+    padding: 25px 15px;
+    border-radius: 15px;
+    border: 1px solid #374151;
+}
+
+#resultado {
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed #4b5563;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+#resultado .titulo {
+    color: #9ca3af;
+    font-size: 15px;
+}
+
+#corSorteada {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    margin: 15px 0;
+    background: #374151;
+    border: 4px solid rgba(255,255,255,.25);
+}
+
+#nomeTime {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+#numeroJogador {
+    margin-top: 8px;
+    color: #d1d5db;
+}
+
+.progresso {
+    margin: 22px 0;
+    font-size: 16px;
+    color: #d1d5db;
+}
+
+.lista-times {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.time {
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    padding: 15px 8px;
+}
+
+.bola {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+}
+
+.time strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.contagem {
+    font-size: 14px;
+    color: #d1d5db;
+}
+
+.barra {
+    height: 6px;
+    background: #374151;
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.barra div {
+    height: 100%;
+    width: 0%;
+    transition: width .3s;
+}
+
+#mensagem {
+    color: #facc15;
+    font-weight: bold;
+    min-height: 24px;
+    margin-top: 18px;
+}
+
+.historico {
+    margin-top: 25px;
+    text-align: left;
+}
+
+.historico h3 {
+    text-align: center;
+}
+
+#listaHistorico {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.jogador {
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 24px; }
+    .painel { padding: 15px 10px; }
+    #nomeTime { font-size: 25px; }
+    select, button { width: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>⚽ JogoRachão</h1>
+    <p>Sorteio automático de jogadores por cores</p>
+</header>
+
+<main class="container">
+
+    <div class="controles">
+        <label for="quantidade">Quantidade de times:</label>
+
+        <select id="quantidade">
+            <option value="2">2 times</option>
+            <option value="3">3 times</option>
+            <option value="4" selected>4 times</option>
+            <option value="5">5 times</option>
+        </select>
+
+        <button id="sortear" type="button">
+            🎲 Sortear jogador
+        </button>
+
+        <button id="reiniciar" type="button">
+            ↻ Reiniciar
+        </button>
+    </div>
+
+    <section class="painel">
+
+        <div id="resultado" role="button" tabindex="0"
+             aria-label="Clique para sortear o próximo jogador">
+            <span class="titulo">PRÓXIMO JOGADOR SORTEADO</span>
+            <div id="corSorteada"></div>
+            <div id="nomeTime">Vamos sortear!</div>
+            <div id="numeroJogador">Clique aqui para começar</div>
+        </div>
+
+        <div class="progresso" id="progresso">
+            0 de 16 jogadores sorteados
+        </div>
+
+        <h3>Distribuição dos times</h3>
+        <div class="lista-times" id="listaTimes"></div>
+
+        <div id="mensagem">
+            Escolha a quantidade de times e comece!
+        </div>
+
+        <div class="historico">
+            <h3>Jogadores sorteados</h3>
+            <div id="listaHistorico"></div>
+        </div>
+
+    </section>
+</main>
+
+<script>
+const cores = [
+    { nome: "Azul",     hex: "#1685F8" },
+    { nome: "Vermelho", hex: "#EF4444" },
+    { nome: "Verde",    hex: "#22A447" },
+    { nome: "Rosa",     hex: "#EC4899" },
+    { nome: "Laranja",  hex: "#F59E0B" }
+];
+
+const quantidade = document.getElementById("quantidade");
+const botaoSortear = document.getElementById("sortear");
+const botaoReiniciar = document.getElementById("reiniciar");
+const resultado = document.getElementById("resultado");
+const corSorteada = document.getElementById("corSorteada");
+const nomeTime = document.getElementById("nomeTime");
+const numeroJogador = document.getElementById("numeroJogador");
+const listaTimes = document.getElementById("listaTimes");
+const listaHistorico = document.getElementById("listaHistorico");
+const progresso = document.getElementById("progresso");
+const mensagem = document.getElementById("mensagem");
+
+let times = [];
+let historico = [];
+let totalJogadores = 0;
+
+function iniciar() {
+    const numeroTimes = Number(quantidade.value);
+
+    times = cores.slice(0, numeroTimes).map((cor, indice) => ({
+        numero: indice + 1,
+        nome: cor.nome,
+        hex: cor.hex,
+        jogadores: 0
+    }));
+
+    historico = [];
+    totalJogadores = numeroTimes * 4;
+
+    corSorteada.style.background = "#374151";
+    nomeTime.textContent = "Vamos sortear!";
+    numeroJogador.textContent = "Clique aqui para começar";
+    mensagem.textContent = "Pronto! Faça o primeiro sorteio.";
+
+    atualizarTela();
+}
+
+function sortear() {
+    const disponiveis = times.filter(time => time.jogadores < 4);
+
+    if (disponiveis.length === 0) {
+        mensagem.textContent = "Todos os times estão completos!";
+        return;
+    }
+
+    // Sorteia aleatoriamente entre os times com vagas.
+    const indice = Math.floor(Math.random() * disponiveis.length);
+    const time = disponiveis[indice];
+
+    time.jogadores++;
+
+    const jogador = {
+        numero: historico.length + 1,
+        timeNumero: time.numero,
+        timeNome: time.nome,
+        cor: time.hex,
+        jogadorNoTime: time.jogadores
+    };
+
+    historico.push(jogador);
+
+    corSorteada.style.background = time.hex;
+    nomeTime.textContent = `TIME ${time.numero} - ${time.nome.toUpperCase()}`;
+    numeroJogador.textContent =
+        `Jogador sorteado nº ${jogador.numero} • ${time.jogadores}º do time`;
+
+    if (times.every(t => t.jogadores === 4)) {
+        mensagem.textContent = "🏆 Sorteio concluído! Todos os times têm 4 jogadores.";
+    } else {
+        mensagem.textContent =
+            `Jogador ${jogador.numero} sorteado! Clique para sortear o próximo.`;
+    }
+
+    atualizarTela();
+}
+
+function atualizarTela() {
+    listaTimes.innerHTML = "";
+
+    times.forEach(time => {
+        const percentual = (time.jogadores / 4) * 100;
+
+        const card = document.createElement("div");
+        card.className = "time";
+
+        card.innerHTML = `
+            <div class="bola" style="background:${time.hex}"></div>
+            <strong>Time ${time.numero} - ${time.nome}</strong>
+            <div class="contagem">${time.jogadores}/4 jogadores</div>
+            <div class="barra">
+                <div style="width:${percentual}%;background:${time.hex}"></div>
+            </div>
+            <div class="contagem">
+                ${time.jogadores === 4 ? "Time completo" : "Vagas: " + (4 - time.jogadores)}
+            </div>
+        `;
+
+        listaTimes.appendChild(card);
+    });
+
+    progresso.textContent =
+        `${historico.length} de ${totalJogadores} jogadores sorteados`;
+
+    listaHistorico.innerHTML = "";
+
+    historico.forEach(jogador => {
+        const item = document.createElement("div");
+        item.className = "jogador";
+        item.style.background = jogador.cor;
+        item.textContent =
+            `Jogador ${jogador.numero} • Time ${jogador.timeNumero}`;
+        item.title = `Time ${jogador.timeNumero} - ${jogador.timeNome}`;
+
+        listaHistorico.appendChild(item);
+    });
+
+    const completo = historico.length === totalJogadores;
+    botaoSortear.disabled = completo;
+    botaoSortear.style.opacity = completo ? "0.5" : "1";
+}
+
+botaoSortear.addEventListener("click", sortear);
+resultado.addEventListener("click", sortear);
+
+resultado.addEventListener("keydown", evento => {
+    if (evento.key === "Enter" || evento.key === " ") {
+        evento.preventDefault();
+        sortear();
+    }
+});
+
+botaoReiniciar.addEventListener("click", iniciar);
+
+quantidade.addEventListener("change", iniciar);
+
+iniciar();
+</script>
+
+</body>
+</html>
