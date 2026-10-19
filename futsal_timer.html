@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Futsal Timer | Cronômetro e Placar</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1016;
+      --panel: #141c26;
+      --line: #293545;
+      --muted: #9eacbd;
+      --accent: #38d39f;
+      --blue: #1687ff;
+      --red: #ff4d5e;
+      --yellow: #ffd34d
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #172433 0, #0b1016 55%);
+      color: #f5f7fa;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      min-height: 100vh
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px 14px 40px
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px
+    }
+
+    .brand {
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 1.1rem
+    }
+
+    .brand span {
+      color: var(--accent)
+    }
+
+    .panel {
+      background: rgba(20, 28, 38, .96);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 12px 35px #0002
+    }
+
+    .mode-btn {
+      border: 1px solid var(--line);
+      background: #101720;
+      color: #cbd5e1;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #07130f
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: 1fr minmax(170px, .8fr) 1fr;
+      gap: 14px;
+      align-items: stretch
+    }
+
+    .team {
+      background: #0d141d;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      min-width: 0
+    }
+
+    .team.home {
+      border-top: 4px solid var(--blue)
+    }
+
+    .team.away {
+      border-top: 4px solid var(--red)
+    }
+
+    .team-name {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid #334155;
+      color: white;
+      text-align: center;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-weight: 800;
+      padding: 4px;
+      margin-bottom: 12px
+    }
+
+    .score {
+      font-size: clamp(4rem, 10vw, 7rem);
+      font-weight: 900;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums
+    }
+
+    .score-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px
+    }
+
+    .score-buttons button {
+      width: 48px;
+      height: 42px;
+      font-size: 1.35rem;
+      font-weight: 900
+    }
+
+    .clock-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #080d12;
+      border: 1px solid #263646;
+      border-radius: 16px;
+      padding: 18px 10px;
+      text-align: center
+    }
+
+    .clock {
+      font-size: clamp(2.5rem, 6vw, 4.7rem);
+      font-weight: 900;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .03em;
+      color: var(--accent)
+    }
+
+    .period {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: 12px
+    }
+
+    .status {
+      font-size: .75rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px
+    }
+
+    .btn-main {
+      border: 0;
+      border-radius: 11px;
+      padding: 12px 20px;
+      font-weight: 800;
+      min-width: 115px
+    }
+
+    .btn-start {
+      background: var(--accent);
+      color: #07130f
+    }
+
+    .btn-pause {
+      background: #e7edf4;
+      color: #111827
+    }
+
+    .btn-reset {
+      background: #263444;
+      color: #fff
+    }
+
+    .btn-small {
+      border: 1px solid var(--line);
+      background: #101720;
+      color: #e7edf4;
+      border-radius: 9px;
+      padding: 8px 12px;
+      font-weight: 650
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 850;
+      margin-bottom: 14px
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px
+    }
+
+    .stat-card {
+      background: #0d141d;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 14px
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .83rem
+    }
+
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: 900;
+      margin-top: 2px
+    }
+
+    .team-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .mini-panel {
+      background: #0d141d;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 14px
+    }
+
+    .card-counts {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1a2532;
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: .85rem
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      display: inline-block
+    }
+
+    .yellow {
+      background: var(--yellow)
+    }
+
+    .red {
+      background: var(--red)
+    }
+
+    .events {
+      max-height: 210px;
+      overflow: auto;
+      padding-left: 0;
+      list-style: none;
+      margin: 0
+    }
+
+    .events li {
+      padding: 9px 0;
+      border-bottom: 1px solid #26313f;
+      color: #d5dde7;
+      font-size: .9rem
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    .form-control,
+    .form-select {
+      background: #0d141d;
+      border-color: #334155;
+      color: #fff
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background: #0d141d;
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 .2rem #38d39f22
+    }
+
+    .form-control::placeholder {
+      color: #738196
+    }
+
+    .timeout-banner {
+      background: #583b08;
+      color: #ffe39a;
+      border: 1px solid #a87918;
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+      font-weight: 800;
+      margin-top: 14px
+    }
+
+    .winner {
+      color: var(--yellow);
+      font-weight: 900
+    }
+
+    body.rachao-mode .scoreboard {
+      grid-template-columns: 1fr
+    }
+
+    body.rachao-mode .clock-wrap {
+      min-height: 58vh;
+      padding: 38px 16px
+    }
+
+    body.rachao-mode .clock {
+      font-size: clamp(6rem, 20vw, 13rem);
+      letter-spacing: .025em
+    }
+
+    body.rachao-mode .team {
+      padding: 10px 12px
+    }
+
+    body.rachao-mode .team-name {
+      font-size: 1rem;
+      margin-bottom: 4px
+    }
+
+    body.rachao-mode .score {
+      font-size: 2rem
+    }
+
+    body.rachao-mode .score-buttons {
+      margin-top: 5px
+    }
+
+    body.rachao-mode .team .mt-3 {
+      margin-top: 5px !important
+    }
+
+    @media(max-width:700px) {
+      .scoreboard {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .clock-wrap {
+        grid-column: 1/-1;
+        grid-row: 1;
+        padding: 22px
+      }
+
+      .team {
+        padding: 14px 8px
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .app {
+        padding: 12px 10px 28px
+      }
+
+      body.rachao-mode .clock-wrap {
+        min-height: 52vh;
+        padding: 28px 8px
+      }
+
+      body.rachao-mode .clock {
+        font-size: clamp(5rem, 23vw, 9rem)
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span>●</span> FUTSAL TIMER <div class="muted small fw-normal">Cronômetro • Placar • Arbitragem
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+
+      <a href="https://muriloperin-ux.github.io/JogoRachao/index.html" class="mode-btn">Sorteio 1 </a>
+
+      <a href="https://muriloperin-ux.github.io/JogoRachao/index3.html" class="mode-btn">Sorteio 2 </a>
+
+        <button class="mode-btn active" id="modeRachao" onclick="setMode('rachao')">Rachão · 10 min / 2 gols</button>
+        <button class="mode-btn" id="modeOficial" onclick="setMode('oficial')">Jogo oficial</button>
+    
+        
+      </div>
+    </header>
+
+    <section class="panel mb-3">
+      <div class="scoreboard">
+
+        <div class="team home">
+          <input id="teamA" class="team-name" value="TIME AZUL" aria-label="Nome do time da casa">
+          <div class="score" id="scoreA">0</div>
+          <div class="score-buttons"><button class="btn btn-primary" onclick="changeScore('A',1)"
+              aria-label="Adicionar gol ao time azul">+</button><button class="btn btn-outline-light"
+              onclick="changeScore('A',-1)" aria-label="Remover gol do time azul">−</button></div>
+          <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+            <button class="btn-small" onclick="addCard('A','amarelo')">🟨 Amarelo</button>
+            <button class="btn-small" onclick="addCard('A','vermelho')">🟥 Vermelho</button>
+          </div>
+
+        </div>
+        
+        <div class="clock-wrap">
+          <div class="status" id="clockLabel">TEMPO DE JOGO</div>
+          <div class="clock" id="clock">10:00</div>
+          <div class="period" id="periodLabel">Rachão • corrida até 2 gols</div>
+          <div class="controls">
+            <button class="btn-main btn-start" id="startBtn" onclick="toggleTimer()">▶ INICIAR</button>
+            <button class="btn-main btn-reset" onclick="resetMatch()">↺ REINICIAR</button>
+          </div>
+        </div>
+
+        <div class="team away">
+          <input id="teamB" class="team-name" value="TIME VERMELHO" aria-label="Nome do time visitante">
+          <div class="score" id="scoreB">0</div>
+          <div class="score-buttons"><button class="btn btn-danger" onclick="changeScore('B',1)"
+              aria-label="Adicionar gol ao time vermelho">+</button><button class="btn btn-outline-light"
+              onclick="changeScore('B',-1)" aria-label="Remover gol do time vermelho">−</button></div>
+          <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+            <button class="btn-small" onclick="addCard('B','amarelo')">🟨 Amarelo</button>
+            <button class="btn-small" onclick="addCard('B','vermelho')">🟥 Vermelho</button>
+          </div>
+        </div>
+      </div>
+      <div id="timeoutBanner" class="timeout-banner hidden"></div>
+      <div id="matchMessage" class="text-center mt-3 fw-bold" role="status"></div>
+    </section>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <section class="panel h-100">
+          <div class="section-title">📋 Controle da partida</div>
+          <div id="officialSettings" class="hidden">
+            <div class="row g-2 mb-3">
+              <div class="col-6"><label class="form-label small muted">Minutos por tempo</label><input type="number"
+                  class="form-control" id="minutesPerHalf" min="1" max="60" value="20"></div>
+              <div class="col-6"><label class="form-label small muted">Duração tempo técnico (seg.)</label><input
+                  type="number" class="form-control" id="timeoutSeconds" min="15" max="180" value="60"></div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap mb-3">
+              <button class="btn-small" onclick="setPeriod(1)">1º tempo</button>
+              <button class="btn-small" onclick="setPeriod(2)">2º tempo</button>
+              <button class="btn-small" onclick="startTechnicalTimeout('A')">Tempo técnico Azul</button>
+              <button class="btn-small" onclick="startTechnicalTimeout('B')">Tempo técnico Vermelho</button>
+            </div>
+            <div class="team-stats mb-3">
+              <div class="mini-panel">
+                <div class="fw-bold" id="labelA">TIME AZUL</div>
+                <div class="muted small">Faltas acumuladas</div>
+                <div class="stat-value" id="foulsA">0</div><button class="btn-small mt-2" onclick="changeFoul('A',1)">+
+                  Falta</button> <button class="btn-small mt-2" onclick="changeFoul('A',-1)">−</button>
+                <div class="small muted mt-2" id="timeoutsA">Tempos técnicos: 1º ✓ · 2º ✓</div>
+              </div>
+              <div class="mini-panel">
+                <div class="fw-bold" id="labelB">TIME VERMELHO</div>
+                <div class="muted small">Faltas acumuladas</div>
+                <div class="stat-value" id="foulsB">0</div><button class="btn-small mt-2" onclick="changeFoul('B',1)">+
+                  Falta</button> <button class="btn-small mt-2" onclick="changeFoul('B',-1)">−</button>
+                <div class="small muted mt-2" id="timeoutsB">Tempos técnicos: 1º ✓ · 2º ✓</div>
+              </div>
+            </div>
+            <p class="small muted mb-0">Configuração padrão: 2 tempos de 20 minutos. Ajuste a duração antes de iniciar.
+              O cronômetro é regressivo e pode ser pausado.</p>
+          </div>
+          <div id="rachaoSettings">
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label">Duração</div>
+                <div class="stat-value">10:00</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Meta de vitória</div>
+                <div class="stat-value">2 gols</div>
+              </div>
+            </div>
+            <p class="small muted mt-3 mb-0">A partida termina quando um time marca 2 gols ou quando o cronômetro chega
+              a zero — o que acontecer primeiro.</p>
+          </div>
+          <hr style="border-color:#293545">
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn-small" onclick="undoLastEvent()">↶ Desfazer último evento</button>
+            <button class="btn-small" onclick="finishMatch()">■ Encerrar partida</button>
+          </div>
+        </section>
+      </div>
+      <div class="col-lg-6">
+        <section class="panel h-100">
+          <div class="section-title">🗂️ Cartões e eventos</div>
+          <div class="team-stats mb-3">
+            <div class="mini-panel">
+              <div class="fw-bold" id="cardsLabelA">TIME AZUL</div>
+              <div class="card-counts"><span class="pill"><i class="dot yellow"></i> Amarelos <b
+                    id="yellowA">0</b></span><span class="pill"><i class="dot red"></i> Vermelhos <b
+                    id="redA">0</b></span></div>
+            </div>
+            <div class="mini-panel">
+              <div class="fw-bold" id="cardsLabelB">TIME VERMELHO</div>
+              <div class="card-counts"><span class="pill"><i class="dot yellow"></i> Amarelos <b
+                    id="yellowB">0</b></span><span class="pill"><i class="dot red"></i> Vermelhos <b
+                    id="redB">0</b></span></div>
+            </div>
+          </div>
+          <ul class="events" id="eventList">
+            <li class="muted">Os eventos da partida aparecerão aqui.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+    <p class="text-center muted small mt-4 mb-0">Futsal Timer • Uso auxiliar. Em competição oficial, siga o regulamento
+      e a orientação da arbitragem.</p>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    let mode = 'rachao';
+    let duration = 600;
+    let remaining = 600;
+    let running = false;
+    let timerId = null;
+    let lastTick = 0;
+    let period = 1;
+    let score = { A: 0, B: 0 };
+    let fouls = { A: 0, B: 0 };
+    let cards = { A: { amarelo: 0, vermelho: 0 }, B: { amarelo: 0, vermelho: 0 } };
+    let timeoutsUsed = { A: { 1: false, 2: false }, B: { 1: false, 2: false } };
+    let events = [];
+    let matchFinished = false;
+    let timeoutEnd = 0;
+    let timeoutInterval = null;
+    let previousState = null;
+
+    function teamName(t) { return $(t === 'A' ? 'teamA' : 'teamB').value.trim() || (t === 'A' ? 'TIME AZUL' : 'TIME VERMELHO'); }
+    function formatTime(s) { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+    function captureState() { return JSON.stringify({ remaining, score: { ...score }, fouls: { ...fouls }, cards: JSON.parse(JSON.stringify(cards)), timeoutsUsed: JSON.parse(JSON.stringify(timeoutsUsed)), period, events: [...events], matchFinished }); }
+    function saveUndo() { previousState = captureState(); }
+    function logEvent(text) { events.unshift({ text, time: formatTime(remaining), period: mode === 'oficial' ? (period + 'º tempo') : 'Rachão' }); renderEvents(); }
+    function renderEvents() {
+      const list = $('eventList');
+      if (!events.length) { list.innerHTML = '<li class="muted">Os eventos da partida aparecerão aqui.</li>'; return; }
+      list.innerHTML = events.map(e => `<li><strong>${escapeHtml(e.time)}</strong> <span class="muted">· ${escapeHtml(e.period)}</span><br>${escapeHtml(e.text)}</li>`).join('');
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+    function setMode(next) {
+      stopTimer(); stopTechnicalTimeout(false);
+      mode = next;
+      document.body.classList.toggle('rachao-mode', mode === 'rachao');
+      $('modeRachao').classList.toggle('active', mode === 'rachao');
+      $('modeOficial').classList.toggle('active', mode === 'oficial');
+      $('officialSettings').classList.toggle('hidden', mode !== 'oficial');
+      $('rachaoSettings').classList.toggle('hidden', mode !== 'rachao');
+      resetMatch();
+    }
+    function toggleTimer() {
+      if (matchFinished) return;
+      if (running) { stopTimer(); return; }
+      if (remaining <= 0) { showMessage('O tempo terminou. Reinicie a partida para começar novamente.'); return; }
+      running = true; lastTick = Date.now(); $('startBtn').textContent = 'Ⅱ PAUSAR'; $('startBtn').className = 'btn-main btn-pause';
+      timerId = setInterval(tick, 100);
+    }
+    function stopTimer() { running = false; if (timerId) { clearInterval(timerId); timerId = null; } $('startBtn').textContent = '▶ INICIAR'; $('startBtn').className = 'btn-main btn-start'; }
+    function tick() {
+      if (!running) return;
+      const now = Date.now(); const delta = (now - lastTick) / 1000; lastTick = now; remaining -= delta;
+      if (remaining <= 0) { remaining = 0; stopTimer(); render(); finishByRule('Tempo encerrado.'); return; }
+      render();
+    }
+    function render() {
+      $('clock').textContent = formatTime(remaining);
+      $('scoreA').textContent = score.A; $('scoreB').textContent = score.B;
+      $('foulsA').textContent = fouls.A; $('foulsB').textContent = fouls.B;
+      $('yellowA').textContent = cards.A.amarelo; $('redA').textContent = cards.A.vermelho;
+      $('yellowB').textContent = cards.B.amarelo; $('redB').textContent = cards.B.vermelho;
+      $('periodLabel').textContent = mode === 'rachao' ? 'Rachão • corrida até 2 gols' : period + 'º tempo • ' + $('minutesPerHalf').value + ' minutos';
+      $('clockLabel').textContent = mode === 'rachao' ? 'TEMPO DO RACHÃO' : 'TEMPO OFICIAL';
+      $('labelA').textContent = $('cardsLabelA').textContent = teamName('A');
+      $('labelB').textContent = $('cardsLabelB').textContent = teamName('B');
+      $('timeoutsA').textContent = 'Tempo técnico: 1º ' + (timeoutsUsed.A[1] ? '✕' : '✓') + ' · 2º ' + (timeoutsUsed.A[2] ? '✕' : '✓');
+      $('timeoutsB').textContent = 'Tempo técnico: 1º ' + (timeoutsUsed.B[1] ? '✕' : '✓') + ' · 2º ' + (timeoutsUsed.B[2] ? '✕' : '✓');
+    }
+    function changeScore(t, amount) {
+      if (matchFinished) return;
+      saveUndo(); score[t] = Math.max(0, score[t] + amount);
+      if (amount > 0) logEvent('Gol do ' + teamName(t) + '. Placar: ' + score.A + ' × ' + score.B + '.');
+      else logEvent('Correção de placar do ' + teamName(t) + '.');
+      render();
+      if (mode === 'rachao' && score[t] >= 2) { stopTimer(); finishByRule('Vitória do ' + teamName(t) + ' por atingir 2 gols!', teamName(t)); }
+    }
+    function addCard(t, type) {
+      if (matchFinished) return;
+      const who = prompt('Nome/número do jogador (opcional):', '');
+      if (who === null) return;
+      saveUndo(); cards[t][type]++;
+      logEvent('Cartão ' + type + ' para ' + teamName(t) + (who.trim() ? ' — ' + who.trim() : '') + '.');
+      render();
+    }
+    function changeFoul(t, amount) { if (mode !== 'oficial' || matchFinished) return; saveUndo(); fouls[t] = Math.max(0, fouls[t] + amount); if (amount > 0) logEvent('Falta acumulada para ' + teamName(t) + '. Total: ' + fouls[t] + '.'); render(); }
+    function setPeriod(p) {
+      if (mode !== 'oficial') return;
+      stopTimer(); stopTechnicalTimeout(false); saveUndo(); period = p;
+      duration = Math.max(1, parseInt($('minutesPerHalf').value) || 20) * 60; remaining = duration; matchFinished = false;
+      $('matchMessage').textContent = ''; logEvent('Início do ' + p + 'º tempo.'); render();
+    }
+    function startTechnicalTimeout(t) {
+      if (mode !== 'oficial' || matchFinished) return;
+      if (timeoutsUsed[t][period]) { showMessage(teamName(t) + ' já utilizou o tempo técnico neste tempo.'); return; }
+      saveUndo(); timeoutsUsed[t][period] = true; stopTimer();
+      const secs = Math.max(15, parseInt($('timeoutSeconds').value) || 60); timeoutEnd = Date.now() + secs * 1000;
+      $('timeoutBanner').classList.remove('hidden');
+      logEvent('Tempo técnico solicitado por ' + teamName(t) + '.');
+      if (timeoutInterval) clearInterval(timeoutInterval);
+      updateTimeoutBanner();
+      timeoutInterval = setInterval(() => { if (Date.now() >= timeoutEnd) { stopTechnicalTimeout(true); } else updateTimeoutBanner(); }, 200);
+      render();
+    }
+    function updateTimeoutBanner() { const s = Math.max(0, Math.ceil((timeoutEnd - Date.now()) / 1000)); $('timeoutBanner').textContent = '⏸ TEMPO TÉCNICO — ' + formatTime(s); }
+    function stopTechnicalTimeout(announce = true) {
+      if (timeoutInterval) { clearInterval(timeoutInterval); timeoutInterval = null; }
+      $('timeoutBanner').classList.add('hidden');
+      if (announce && mode === 'oficial') showMessage('Tempo técnico encerrado. Cronômetro de jogo pausado; pressione INICIAR para continuar.');
+    }
+    function finishByRule(message, winner = '') {
+      matchFinished = true; stopTimer(); $('startBtn').disabled = true;
+      $('matchMessage').innerHTML = (winner ? '<span class="winner">🏆 ' + escapeHtml(winner) + ' venceu!</span> ' : '') + escapeHtml(message);
+      logEvent(message);
+    }
+    function finishMatch() { if (matchFinished) return; saveUndo(); stopTimer(); stopTechnicalTimeout(false); finishByRule('Partida encerrada manualmente.'); }
+    function resetMatch() {
+      stopTimer(); stopTechnicalTimeout(false); $('startBtn').disabled = false;
+      period = 1; score = { A: 0, B: 0 }; fouls = { A: 0, B: 0 }; cards = { A: { amarelo: 0, vermelho: 0 }, B: { amarelo: 0, vermelho: 0 } };
+      timeoutsUsed = { A: { 1: false, 2: false }, B: { 1: false, 2: false } }; events = []; matchFinished = false; previousState = null;
+      duration = mode === 'rachao' ? 600 : Math.max(1, parseInt($('minutesPerHalf').value) || 20) * 60; remaining = duration;
+      $('matchMessage').textContent = ''; render(); renderEvents();
+    }
+    function undoLastEvent() {
+      if (!previousState) { showMessage('Não há ação anterior para desfazer.'); return; }
+      stopTimer(); stopTechnicalTimeout(false);
+      const s = JSON.parse(previousState); remaining = s.remaining; score = s.score; fouls = s.fouls; cards = s.cards; timeoutsUsed = s.timeoutsUsed; period = s.period; events = s.events; matchFinished = s.matchFinished;
+      previousState = null; $('startBtn').disabled = matchFinished; $('matchMessage').textContent = ''; render(); renderEvents();
+    }
+    function showMessage(msg) { $('matchMessage').textContent = msg; setTimeout(() => { if ($('matchMessage').textContent === msg) $('matchMessage').textContent = ''; }, 4500); }
+    $('minutesPerHalf').addEventListener('change', () => { if (mode === 'oficial' && !running) resetMatch(); });
+    $('teamA').addEventListener('input', render); $('teamB').addEventListener('input', render);
+    document.body.classList.add('rachao-mode');
+    render();
+  </script>
+</body>
+
+</html>
